@@ -8,8 +8,16 @@ import { NAV, SITE } from "@/lib/site";
 export default function Header() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  // Podizbornik koji je upravo korišten ostaje zatvoren dok miš ponovno ne dođe na njegov naslov.
+  const [zatvoren, setZatvoren] = useState<string | null>(null);
 
-  useEffect(() => setOpen(false), [pathname]);
+  useEffect(() => {
+    setOpen(false);
+    // Nakon navigacije fokus ostaje na kliknutoj poveznici i drži podizbornik otvorenim (:focus-within).
+    if (document.activeElement instanceof HTMLElement && document.activeElement.closest(".main-nav")) {
+      document.activeElement.blur();
+    }
+  }, [pathname]);
 
   const isActive = (href?: string) => href === pathname;
 
@@ -37,7 +45,10 @@ export default function Header() {
         <nav id="glavni-izbornik" className={`main-nav${open ? " is-open" : ""}`} aria-label="Glavni izbornik">
           <ul>
             {NAV.map((item) => (
-              <li key={item.label} className={item.children ? "has-children" : undefined}>
+              <li
+                key={item.label}
+                className={item.children ? `has-children${zatvoren === item.label ? " is-closed" : ""}` : undefined}
+              >
                 {item.href ? (
                   <Link href={item.href} className={isActive(item.href) ? "active" : undefined}>
                     {item.label}
@@ -46,6 +57,8 @@ export default function Header() {
                   <span
                     className={item.children?.some((c) => isActive(c.href)) ? "active" : undefined}
                     tabIndex={0}
+                    onMouseEnter={() => zatvoren === item.label && setZatvoren(null)}
+                    onFocus={() => zatvoren === item.label && setZatvoren(null)}
                   >
                     {item.label}
                   </span>
@@ -54,7 +67,11 @@ export default function Header() {
                   <ul className="submenu">
                     {item.children.map((c) => (
                       <li key={c.href}>
-                        <Link href={c.href!} className={isActive(c.href) ? "active" : undefined}>
+                        <Link
+                          href={c.href!}
+                          className={isActive(c.href) ? "active" : undefined}
+                          onClick={() => setZatvoren(item.label)}
+                        >
                           {c.label}
                         </Link>
                       </li>

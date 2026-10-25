@@ -231,8 +231,8 @@ b {
   opacity: 0;
   transition: opacity 0.2s;
 }
-.has-children:hover .submenu,
-.has-children:focus-within .submenu {
+.has-children:not(.is-closed):hover .submenu,
+.has-children:not(.is-closed):focus-within .submenu {
   visibility: visible;
   opacity: 1;
 }
@@ -698,6 +698,99 @@ b {
 }
 .contact-form .btn {
   align-self: flex-start;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.field-label {
+  color: var(--heading);
+  font-weight: 400;
+}
+.dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 26px 16px;
+  border: 2px dashed #c3ccd6;
+  border-radius: 6px;
+  background: #f7f9fb;
+  color: var(--text);
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.dropzone svg {
+  color: var(--navy);
+  margin-bottom: 6px;
+}
+.dropzone:hover,
+.dropzone:focus-visible,
+.dropzone.is-over {
+  border-color: var(--accent);
+  background: #eef4f9;
+  outline: none;
+}
+.dropzone-title {
+  color: var(--heading);
+  font-weight: 500;
+}
+.dropzone-link {
+  color: var(--navy);
+  text-decoration: underline;
+}
+.dropzone-info {
+  font-size: 13px;
+  margin-top: 4px;
+}
+.dropzone-list {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  font-size: 14px;
+}
+.dropzone-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  border-bottom: 1px solid #e6eaef;
+}
+.dropzone-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #333;
+  font-weight: 400;
+}
+.dropzone-size {
+  color: #888;
+  white-space: nowrap;
+}
+.dropzone-list button {
+  border: 0;
+  background: none;
+  font-size: 20px;
+  line-height: 1;
+  color: #999;
+  cursor: pointer;
+  padding: 0 4px;
+}
+.dropzone-list button:hover {
+  color: #c94040;
+}
+.dropzone-total {
+  justify-content: flex-end;
+  border-bottom: 0 !important;
+  color: #888;
+}
+.dropzone-total.is-error {
+  color: #c94040;
+  font-weight: 500;
 }
 .hp {
   position: absolute;

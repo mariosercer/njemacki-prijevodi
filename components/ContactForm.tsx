@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { prenesiDatoteke } from "@/lib/prijenos";
 import { SITE } from "@/lib/site";
+import DropZone from "./DropZone";
 import Turnstile, { TURNSTILE_SITE_KEY } from "./Turnstile";
 
 const DOZVOLJENO = ".pdf,.doc,.docx,.txt,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.zip,.rar";
@@ -15,12 +16,12 @@ export default function ContactForm() {
   const [stanje, setStanje] = useState<Stanje>({ vrsta: "mir" });
   const [tsToken, setTsToken] = useState("");
   const [tsReset, setTsReset] = useState(0);
+  const [datoteke, setDatoteke] = useState<File[]>([]);
 
   async function posalji(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget;
     const fd = new FormData(form);
-    const datoteke = fd.getAll("datoteke").filter((f): f is File => f instanceof File && f.size > 0);
     const ukupno = datoteke.reduce((s, f) => s + f.size, 0);
     if (ukupno > MAX_MB * 1024 * 1024) {
       setStanje({ vrsta: "greska", poruka: `Datoteke su ukupno veće od ${MAX_MB} MB. Pošaljite ih e-mailom na ${SITE.email}.` });
@@ -41,12 +42,12 @@ export default function ContactForm() {
         setStanje({ vrsta: "greska", poruka: prijenos.poruka });
         return;
       }
-      fd.delete("datoteke");
       fd.set("oznaka", prijenos.oznaka);
       const res = await fetch("/api/kontakt/", { method: "POST", body: fd });
       const odg = await res.json().catch(() => null);
       if (res.ok && odg?.ok) {
         form.reset();
+        setDatoteke([]);
         setStanje({ vrsta: "uspjeh" });
       } else {
         setStanje({ vrsta: "greska", poruka: odg?.poruka ?? `Poruka nije poslana. Pišite nam izravno na ${SITE.email}.` });
@@ -81,10 +82,10 @@ export default function ContactForm() {
         Poruka *
         <textarea name="poruka" rows={7} required />
       </label>
-      <label>
-        Dokumenti za prijevod (najviše {MAX_MB} MB ukupno)
-        <input type="file" name="datoteke" multiple accept={DOZVOLJENO} />
-      </label>
+      <div className="field">
+        <span className="field-label">Dokumenti za prijevod (neobavezno)</span>
+        <DropZone datoteke={datoteke} onChange={setDatoteke} accept={DOZVOLJENO} maxMb={MAX_MB} />
+      </div>
       {/* Zamka za robote: ljudi ovo polje ne vide. */}
       <input type="text" name="web" tabIndex={-1} autoComplete="off" className="hp" aria-hidden="true" />
       <label className="checkbox">
