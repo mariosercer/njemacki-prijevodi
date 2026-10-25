@@ -57,7 +57,7 @@ export async function POST(req: Request) {
     if (error || !data) {
       console.error("Supabase: izrada adrese za prijenos nije uspjela", error);
       // PRIVREMENO za dijagnostiku – ukloniti nakon postavljanja
-      return NextResponse.json({ ok: false, poruka: PORUKA_NEDOSTUPNO, detalj: error?.message, kljuc: vrstaKljuca() }, { status: 503 });
+      return NextResponse.json({ ok: false, poruka: PORUKA_NEDOSTUPNO, detalj: error?.message, kljuc: vrstaKljuca(), dijagnostika: dijagnostika() }, { status: 503 });
     }
     prijenosi.push({ url: data.signedUrl });
   }
@@ -77,4 +77,16 @@ function vrstaKljuca(): string {
     }
   }
   return k ? "nepoznato" : "prazno";
+}
+
+// PRIVREMENO: nazivi varijabli (bez vrijednosti) i oznaka Supabase projekta (javni podatak iz URL-a)
+function dijagnostika() {
+  const nazivi = Object.keys(process.env).filter((k) => /SUPABASE|POSTGRES/i.test(k)).sort();
+  let projekt = "";
+  try {
+    projekt = new URL(process.env.SUPABASE_URL ?? "").hostname.split(".")[0];
+  } catch {
+    projekt = "neispravan URL";
+  }
+  return { nazivi, projekt };
 }
