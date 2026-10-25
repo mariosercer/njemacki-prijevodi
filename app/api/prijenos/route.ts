@@ -84,7 +84,8 @@ function dijagnostika() {
   const nazivi = Object.keys(process.env).filter((k) => /SUPABASE|POSTGRES/i.test(k)).sort();
   let projekt = "";
   try {
-    projekt = new URL(process.env.SUPABASE_URL ?? "").hostname.split(".")[0];
+    const u = new URL((process.env.SUPABASE_URL ?? "").trim());
+    projekt = u.hostname.split(".")[0] + (u.pathname !== "/" ? ` (putanja: ${u.pathname})` : "");
   } catch {
     projekt = "neispravan URL";
   }
