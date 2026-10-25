@@ -31,6 +31,9 @@ const USLUGE = [
   },
 ];
 
+// Recenzije s Googlea osvježavaju se jednom dnevno.
+export const revalidate = 86400;
+
 export default function Home() {
   return (
     <>

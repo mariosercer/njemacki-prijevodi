@@ -565,6 +565,21 @@ b {
 .reviews-source {
   font-size: 13px;
 }
+.reviews-count {
+  color: var(--text);
+  font-size: 14px;
+}
+.review-time {
+  color: #999;
+  font-size: 12px;
+  letter-spacing: 0;
+}
+.reviews-list blockquote {
+  display: -webkit-box;
+  -webkit-line-clamp: 8;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
 
 .contact-row {
   align-items: start;
