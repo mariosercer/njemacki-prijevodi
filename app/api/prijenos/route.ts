@@ -12,7 +12,7 @@ import {
   sigurnoIme,
   type Izvor,
 } from "@/lib/upiti";
-import { SPREMNIK, supabase } from "@/lib/supabase";
+import { SPREMNIK, supabase, supabaseKljuc } from "@/lib/supabase";
 import { tajniKljuc } from "@/lib/tajna";
 
 // 1. korak slanja: provjera i potpisane adrese za izravan prijenos datoteka u Supabase Storage
@@ -66,7 +66,7 @@ export async function POST(req: Request) {
 
 // PRIVREMENO za dijagnostiku – samo vrsta ključa, nikad vrijednost
 function vrstaKljuca(): string {
-  const k = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
+  const k = supabaseKljuc() ?? "";
   if (k.startsWith("sb_secret_")) return "sb_secret";
   if (k.startsWith("sb_publishable_")) return "sb_publishable";
   if (k.startsWith("eyJ")) {
