@@ -13,6 +13,7 @@ import {
   type Izvor,
 } from "@/lib/upiti";
 import { SPREMNIK, supabase } from "@/lib/supabase";
+import { tajniKljuc } from "@/lib/tajna";
 
 // 1. korak slanja: provjera i potpisane adrese za izravan prijenos datoteka u Supabase Storage
 // (Vercel ne prima zahtjeve veće od 4,5 MB, pa datoteke ne idu preko ovog poslužitelja).
@@ -25,11 +26,7 @@ type Zahtjev = {
 
 export async function POST(req: Request) {
   const db = supabase();
-  if (!db || !process.env.SESSION_SECRET) {
-    // PRIVREMENO za dijagnostiku – samo nazivi varijabli koje nedostaju, bez vrijednosti
-    const nedostaje = ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "SESSION_SECRET"].filter((k) => !process.env[k]);
-    return NextResponse.json({ ok: false, poruka: PORUKA_NEDOSTUPNO, nedostaje }, { status: 503 });
-  }
+  if (!db || !tajniKljuc()) return greska(PORUKA_NEDOSTUPNO, 503);
 
   const z = (await req.json().catch(() => null)) as Zahtjev | null;
   if (!z || (z.izvor !== "kontakt" && z.izvor !== "ponuda")) return greska("Neispravan zahtjev.");

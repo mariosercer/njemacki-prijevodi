@@ -1,11 +1,12 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
+import { tajniKljuc } from "@/lib/tajna";
 
 // Pristup privatnoj stranici „Izračun cijene”. Lozinka i tajni ključ dolaze iz varijabli okruženja (Vercel → Settings → Environment Variables).
 export const KOLACIC = "kk_prevoditelj";
 
 function tajna(): string | null {
   const lozinka = process.env.PREVODITELJ_LOZINKA;
-  const kljuc = process.env.SESSION_SECRET;
+  const kljuc = tajniKljuc();
   if (!lozinka || !kljuc) return null;
   // Promjena lozinke poništava sve postojeće prijave.
   return createHmac("sha256", kljuc).update(`prevoditelj:${lozinka}`).digest("hex");

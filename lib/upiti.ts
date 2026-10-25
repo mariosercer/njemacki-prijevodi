@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { SITE } from "@/lib/site";
 import { SPREMNIK, supabase } from "@/lib/supabase";
+import { tajniKljuc } from "@/lib/tajna";
 
 export type Izvor = "kontakt" | "ponuda";
 
@@ -21,7 +22,7 @@ export function greska(poruka: string, status = 400) {
 export const PORUKA_NEDOSTUPNO = `Slanje trenutno nije moguće. Pošaljite nam upit izravno na ${SITE.email}.`;
 
 function tajna(): string | null {
-  return process.env.SESSION_SECRET || null;
+  return tajniKljuc();
 }
 
 /* ---------- Oznaka prijenosa: dokazuje da je upit prošao provjeru u /api/prijenos ---------- */
