@@ -57,9 +57,24 @@ export async function POST(req: Request) {
     if (error || !data) {
       console.error("Supabase: izrada adrese za prijenos nije uspjela", error);
       // PRIVREMENO za dijagnostiku – ukloniti nakon postavljanja
-      return NextResponse.json({ ok: false, poruka: PORUKA_NEDOSTUPNO, detalj: error?.message }, { status: 503 });
+      return NextResponse.json({ ok: false, poruka: PORUKA_NEDOSTUPNO, detalj: error?.message, kljuc: vrstaKljuca() }, { status: 503 });
     }
     prijenosi.push({ url: data.signedUrl });
   }
   return NextResponse.json({ ok: true, oznaka, prijenosi });
+}
+
+// PRIVREMENO za dijagnostiku – samo vrsta ključa, nikad vrijednost
+function vrstaKljuca(): string {
+  const k = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
+  if (k.startsWith("sb_secret_")) return "sb_secret";
+  if (k.startsWith("sb_publishable_")) return "sb_publishable";
+  if (k.startsWith("eyJ")) {
+    try {
+      return "jwt:" + JSON.parse(Buffer.from(k.split(".")[1], "base64url").toString()).role;
+    } catch {
+      return "jwt:?";
+    }
+  }
+  return k ? "nepoznato" : "prazno";
 }
