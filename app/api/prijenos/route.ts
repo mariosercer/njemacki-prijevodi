@@ -55,7 +55,8 @@ export async function POST(req: Request) {
     const { data, error } = await db.storage.from(SPREMNIK).createSignedUploadUrl(`${id}/${ime}`);
     if (error || !data) {
       console.error("Supabase: izrada adrese za prijenos nije uspjela", error);
-      return greska(PORUKA_NEDOSTUPNO, 503);
+      // PRIVREMENO za dijagnostiku – ukloniti nakon postavljanja
+      return NextResponse.json({ ok: false, poruka: PORUKA_NEDOSTUPNO, detalj: error?.message }, { status: 503 });
     }
     prijenosi.push({ url: data.signedUrl });
   }
