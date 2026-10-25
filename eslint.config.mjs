@@ -18,7 +18,12 @@ const eslintConfig = [
       "out/**",
       "build/**",
       "next-env.d.ts",
+      "public/kalkulator/**",
     ],
+  },
+  {
+    // Slike su već optimizirane (webp) i dolaze iz /public, pa next/image ovdje nije potreban.
+    rules: { "@next/next/no-img-element": "off" },
   },
 ];
 

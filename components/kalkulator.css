@@ -1,0 +1,737 @@
+/* Izračun okvirne cijene prijevoda 1.7 – Mario Šercer
+   Font se nasljeđuje od teme, a istaknuta boja dolazi iz atributa "boja" shortcodea. */
+
+.kk {
+	--kk-boja: #24456b;
+	--kk-papir: #ffffff;
+	--kk-podloga: #f2f4f7;
+	--kk-crta: #d3d9e1;
+	--kk-tekst: #1d2733;
+	--kk-blago: #5d6876;
+	--kk-greska: #a3392b;
+	--kk-radijus: 6px;
+
+	box-sizing: border-box;
+	max-width: 760px;
+	margin: 0 auto;
+	color: var(--kk-tekst);
+	font-family: inherit;
+	font-size: 16px;
+	line-height: 1.5;
+	text-align: left;
+}
+.kk *, .kk *::before, .kk *::after { box-sizing: inherit; }
+.kk [hidden] { display: none !important; }
+.kk p { margin: 0 !important; padding: 0 !important; }
+
+/* Zona za povlačenje */
+.kk .kk-zona {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 4px;
+	padding: 36px 20px 30px;
+	background: var(--kk-podloga);
+	border: 2px dashed var(--kk-crta);
+	border-radius: var(--kk-radijus);
+	text-align: center;
+	cursor: pointer;
+	transition: border-color .15s, background-color .15s;
+}
+.kk .kk-zona:hover { border-color: var(--kk-boja); }
+.kk .kk-zona:focus-visible { outline: 3px solid var(--kk-boja); outline-offset: 3px; }
+.kk .kk-zona--iznad {
+	border-style: solid;
+	border-color: var(--kk-boja);
+	background: color-mix(in srgb, var(--kk-boja) 8%, var(--kk-papir));
+}
+.kk .kk-zona-ikona { width: 40px; height: 50px; color: var(--kk-boja); margin-bottom: 8px; }
+.kk .kk-zona-naslov { font-size: 1.2em; font-weight: 600; color: var(--kk-tekst); }
+.kk .kk-zona-opis { color: var(--kk-blago); }
+.kk .kk-zona-link { color: var(--kk-boja); text-decoration: underline; text-underline-offset: 3px; }
+.kk .kk-zona-formati { margin-top: 10px !important; font-size: .85em; color: var(--kk-blago); }
+.kk .kk-zona-lokalno { margin-top: 6px !important; font-size: .9em; font-weight: 700; color: var(--kk-tekst); }
+
+/* Obavijest (npr. datoteka je već na popisu) */
+.kk .kk-obavijest {
+	margin-top: 10px !important;
+	color: var(--kk-greska);
+	font-weight: 600;
+	font-size: .92em;
+}
+
+/* Kvačica za slike */
+.kk label.kk-opcija {
+	display: flex;
+	align-items: flex-start;
+	gap: 10px;
+	margin: 14px 0 0;
+	padding: 0;
+	cursor: pointer;
+	font-weight: 400;
+}
+.kk input.kk-slike {
+	flex: none;
+	width: 18px;
+	height: 18px;
+	margin: 2px 0 0;
+	accent-color: var(--kk-boja);
+	cursor: pointer;
+}
+.kk input.kk-slike:focus-visible { outline: 2px solid var(--kk-boja); outline-offset: 2px; }
+.kk .kk-opcija-tekst { display: flex; flex-direction: column; color: var(--kk-tekst); }
+.kk .kk-opcija-opis { font-size: .85em; color: var(--kk-blago); }
+
+/* Vrsta prijevoda i dostava */
+.kk .kk-narudzba {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+	gap: 14px 18px;
+	margin-top: 18px;
+}
+.kk fieldset.kk-skupina {
+	min-width: 0;
+	margin: 0;
+	padding: 0;
+	border: 0;
+}
+.kk fieldset.kk-skupina legend {
+	margin: 0 0 8px;
+	padding: 0;
+	font-weight: 700;
+	color: var(--kk-tekst);
+}
+.kk button.kk-ponisti {
+	margin: 4px 0 0;
+	padding: 4px 0;
+	border: 0;
+	background: none;
+	color: var(--kk-boja);
+	font: inherit;
+	font-size: .85em;
+	text-decoration: underline;
+	text-underline-offset: 3px;
+	cursor: pointer;
+}
+.kk button.kk-ponisti:focus-visible { outline: 2px solid var(--kk-boja); outline-offset: 2px; }
+.kk .kk-skupina-uputa { font-size: .9em; color: var(--kk-blago); }
+.kk label.kk-izbor {
+	display: flex;
+	align-items: flex-start;
+	gap: 10px;
+	margin: 0 0 6px;
+	padding: 9px 12px;
+	border: 1px solid var(--kk-crta);
+	border-radius: var(--kk-radijus);
+	background: var(--kk-papir);
+	cursor: pointer;
+	font-weight: 400;
+	transition: border-color .15s, background-color .15s;
+}
+.kk label.kk-izbor:hover { border-color: var(--kk-boja); }
+.kk label.kk-izbor:has(input:checked) {
+	border-color: var(--kk-boja);
+	background: color-mix(in srgb, var(--kk-boja) 7%, var(--kk-papir));
+}
+.kk label.kk-izbor input {
+	flex: none;
+	width: 17px;
+	height: 17px;
+	margin: 2px 0 0;
+	accent-color: var(--kk-boja);
+	cursor: pointer;
+}
+.kk label.kk-izbor input:focus-visible { outline: 2px solid var(--kk-boja); outline-offset: 2px; }
+.kk .kk-izbor-tekst { display: flex; flex-direction: column; }
+.kk label.kk-dodatak {
+	margin-top: 10px;
+	border-style: dashed;
+}
+.kk label.kk-dodatak input { border-radius: 3px; }
+.kk .kk-izbor-naziv { color: var(--kk-tekst); }
+.kk .kk-izbor-opis { font-size: .85em; color: var(--kk-blago); font-variant-numeric: tabular-nums; }
+
+/* Greška: nije odabrana vrsta prijevoda ili način dostave */
+.kk fieldset.kk-skupina--greska legend { color: var(--kk-greska); }
+.kk fieldset.kk-skupina--greska label.kk-izbor { border-color: var(--kk-greska); }
+.kk fieldset.kk-skupina--greska .kk-skupina-uputa { color: var(--kk-greska); }
+.kk .kk-greska-poruka {
+	flex-basis: 100%;
+	order: -1;
+	color: var(--kk-greska);
+	font-weight: 600;
+	font-size: .92em;
+}
+
+/* Popis datoteka */
+.kk ul.kk-popis {
+	list-style: none !important;
+	margin: 16px 0 0 !important;
+	padding: 0 !important;
+}
+.kk ul.kk-popis:empty { margin: 0 !important; }
+.kk li.kk-stavka {
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr) auto 7.5em auto auto;
+	grid-template-areas: "vrsta info polje rez word ukloni";
+	align-items: center;
+	gap: 6px 14px;
+	margin: 0 !important;
+	padding: 12px 4px !important;
+	border-bottom: 1px solid var(--kk-crta);
+	list-style: none !important;
+}
+.kk li.kk-stavka::before { content: none !important; }
+
+.kk .kk-vrsta {
+	grid-area: vrsta;
+	min-width: 3.6em;
+	padding: 3px 6px;
+	border: 1.5px solid var(--kk-boja);
+	border-radius: 3px;
+	color: var(--kk-boja);
+	font-size: .72em;
+	font-weight: 700;
+	letter-spacing: .03em;
+	text-align: center;
+}
+.kk [data-stanje="greska"] .kk-vrsta { border-color: var(--kk-greska); color: var(--kk-greska); }
+
+.kk .kk-info { grid-area: info; display: flex; flex-direction: column; min-width: 0; }
+.kk .kk-ime { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.kk .kk-status { font-size: .85em; color: var(--kk-blago); }
+.kk [data-stanje="greska"] .kk-status { color: var(--kk-greska); }
+
+.kk .kk-traka {
+	display: none;
+	height: 3px;
+	margin-top: 6px;
+	background: var(--kk-crta);
+	border-radius: 2px;
+	overflow: hidden;
+}
+.kk [data-stanje="obrada"] .kk-traka { display: block; }
+.kk .kk-traka > span {
+	display: block;
+	width: 0;
+	height: 100%;
+	background: var(--kk-boja);
+	transition: width .2s;
+}
+
+.kk .kk-polje { grid-area: polje; display: flex; align-items: baseline; gap: 6px; margin: 0; }
+.kk input.kk-broj {
+	width: 7em;
+	margin: 0;
+	padding: 6px 8px !important;
+	border: 1px solid var(--kk-crta) !important;
+	border-radius: 4px;
+	background: var(--kk-papir) !important;
+	color: var(--kk-tekst) !important;
+	font: inherit;
+	font-variant-numeric: tabular-nums;
+	text-align: right;
+	-moz-appearance: textfield;
+}
+.kk input.kk-broj::-webkit-outer-spin-button,
+.kk input.kk-broj::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.kk input.kk-broj:focus { outline: 2px solid var(--kk-boja); outline-offset: 1px; border-color: var(--kk-boja) !important; }
+.kk input.kk-broj:disabled { background: var(--kk-podloga) !important; color: var(--kk-blago) !important; }
+.kk .kk-jedinica { font-size: .85em; color: var(--kk-blago); }
+
+.kk .kk-rez { grid-area: rez; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.kk .kk-rez b { font-weight: 700; }
+
+.kk button.kk-ukloni {
+	grid-area: ukloni;
+	width: 32px;
+	height: 32px;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	border-radius: 50%;
+	background: transparent;
+	color: var(--kk-blago);
+	font: inherit;
+	font-size: 1.4em;
+	line-height: 1;
+	cursor: pointer;
+}
+.kk button.kk-ukloni:hover { background: var(--kk-podloga); color: var(--kk-tekst); }
+.kk button.kk-ukloni:focus-visible { outline: 2px solid var(--kk-boja); outline-offset: 1px; }
+
+.kk button.kk-word {
+	grid-area: word;
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+	margin: 0;
+	padding: 5px 10px;
+	border: 1.5px solid var(--kk-boja);
+	border-radius: 4px;
+	background: transparent;
+	color: var(--kk-boja);
+	font: inherit;
+	font-size: .85em;
+	font-weight: 600;
+	line-height: 1.2;
+	cursor: pointer;
+}
+.kk button.kk-word svg { width: 15px; height: 15px; }
+.kk button.kk-word:hover { background: var(--kk-boja); color: var(--kk-papir); }
+.kk button.kk-word:focus-visible { outline: 2px solid var(--kk-boja); outline-offset: 2px; }
+.kk button.kk-word:disabled { opacity: .35; cursor: default; background: transparent; color: var(--kk-boja); }
+.kk [data-stanje="greska"] .kk-word { visibility: hidden; }
+
+/* Gumbi */
+.kk .kk-akcije {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 10px 12px;
+	margin-top: 18px;
+}
+.kk button.kk-pokreni {
+	margin: 0;
+	padding: 11px 22px;
+	border: 2px solid var(--kk-boja);
+	border-radius: 4px;
+	background: var(--kk-boja);
+	color: var(--kk-papir);
+	font: inherit;
+	font-weight: 700;
+	line-height: 1.2;
+	cursor: pointer;
+}
+.kk button.kk-pokreni:hover:not(:disabled) { background: color-mix(in srgb, var(--kk-boja) 85%, #000); }
+.kk button.kk-pokreni:disabled { opacity: .45; cursor: default; }
+/* Tijekom izračuna gumb se puni tamnom bojom slijeva nadesno prema napretku obrade. */
+.kk button.kk-pokreni.kk-pokreni--radi,
+.kk button.kk-pokreni.kk-pokreni--radi:disabled {
+	opacity: 1;
+	cursor: progress;
+	min-width: 13em;
+	background: linear-gradient(90deg,
+		var(--kk-boja) 0, var(--kk-boja) var(--kk-napredak, 0%),
+		color-mix(in srgb, var(--kk-boja) 45%, #ffffff) var(--kk-napredak, 0%));
+	font-variant-numeric: tabular-nums;
+	text-shadow: 0 1px 1px rgba(0, 0, 0, .25);
+}
+.kk button.kk-pokreni:focus-visible { outline: 3px solid var(--kk-boja); outline-offset: 3px; }
+.kk button.kk-ocisti {
+	margin: 0;
+	padding: 11px 16px;
+	border: 1px solid var(--kk-crta);
+	border-radius: 4px;
+	background: transparent;
+	color: var(--kk-blago);
+	font: inherit;
+	line-height: 1.2;
+	cursor: pointer;
+}
+.kk button.kk-ocisti:hover:not(:disabled) { border-color: var(--kk-blago); color: var(--kk-tekst); }
+.kk button.kk-ocisti:disabled { opacity: .45; cursor: default; }
+.kk button.kk-ocisti:focus-visible { outline: 2px solid var(--kk-boja); outline-offset: 2px; }
+.kk .kk-akcije-info { flex-basis: 100%; font-size: .88em; color: var(--kk-blago); }
+.kk .kk-akcije-info:empty { display: none; }
+
+/* Ukupno */
+.kk .kk-ukupno {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 18px;
+	margin-top: 20px;
+	padding: 20px 22px;
+	border: 2px solid var(--kk-boja);
+	border-radius: var(--kk-radijus);
+	background: var(--kk-papir);
+}
+.kk .kk-list { flex: none; width: 48px; height: 60px; color: var(--kk-boja); }
+.kk .kk-list-ispuna { fill: color-mix(in srgb, var(--kk-boja) 22%, transparent); transition: y .3s, height .3s; }
+.kk .kk-ukupno-tekst { flex: 1; min-width: 0; }
+.kk .kk-kartice {
+	display: flex;
+	align-items: baseline;
+	flex-wrap: wrap;
+	gap: 0 8px;
+	color: var(--kk-boja);
+	line-height: 1.1;
+}
+.kk .kk-kartice-ukupno { font-size: 1.05em; font-weight: 600; }
+.kk .kk-kartice-broj { font-size: 1.37em; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+.kk .kk-kartice-oznaka { font-size: 1.05em; font-weight: 600; }
+.kk .kk-kartice-definicija { margin-left: auto; font-size: .85rem; font-weight: 400; color: var(--kk-blago); text-align: right; }
+.kk .kk-kartice-podjela { margin-top: 6px !important; font-size: .9em; font-weight: 600; color: var(--kk-tekst); }
+.kk .kk-znakovi { margin-top: 4px !important; color: var(--kk-blago); font-size: .9em; }
+.kk .kk-cijena { margin-top: 6px !important; font-weight: 600; }
+
+.kk .kk-napomena { margin-top: 12px !important; font-size: .82em; color: var(--kk-blago); }
+
+/* Obračun cijene */
+.kk .kk-obracun {
+	flex-basis: 100%;
+	margin-top: 4px;
+	padding-top: 14px;
+	border-top: 1px solid var(--kk-crta);
+}
+.kk .kk-obracun-red {
+	display: flex;
+	justify-content: space-between;
+	gap: 16px;
+	padding: 3px 0;
+	font-size: .92em;
+}
+.kk .kk-obracun-detalj { margin-top: -3px; padding-top: 0; font-size: .82em; color: var(--kk-blago); }
+.kk .kk-obracun-iznos { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.kk .kk-obracun-ukupno {
+	margin-top: 6px;
+	padding-top: 8px;
+	border-top: 1px solid var(--kk-crta);
+	font-weight: 700;
+	color: var(--kk-boja);
+}
+/* Naziv okvirne cijene iste je veličine kao stavke, a iznos ostaje veći. */
+.kk .kk-obracun-ukupno { align-items: baseline; }
+.kk .kk-obracun-ukupno .kk-obracun-iznos { font-size: 1.14em; }
+.kk .kk-obracun-uputa { white-space: pre-line; }
+.kk .kk-obracun-uputa { margin-top: 6px !important; font-size: .85em; color: var(--kk-blago); }
+.kk .kk-obracun-konacno { font-size: .98em; font-weight: 700; color: var(--kk-tekst); }
+
+/* Javni prikaz: bez polja za broj znakova i gumba Word */
+.kk.kk--javni li.kk-stavka {
+	grid-template-columns: auto minmax(0, 1fr) auto auto;
+	grid-template-areas: "vrsta info rez ukloni";
+}
+
+/* Stručni tekst */
+.kk .kk-obracun-naslov { margin-bottom: 4px !important; font-size: .78em; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--kk-boja); }
+.kk .kk-obracun-redovi--strucno { margin-top: 16px; padding-top: 14px; border-top: 1px dashed var(--kk-crta); }
+.kk .kk-obracun-redovi--strucno .kk-obracun-naslov { color: var(--kk-boja); }
+
+.kk .kk-obracun-strucno + .kk-obracun-redovi { margin-top: 14px; }
+.kk .kk-obracun-redovi--strucno { margin-top: 14px; padding-top: 0; border-top: 0; }
+.kk .kk-obracun-ukupno-dodatni .kk-obracun-iznos { font-size: 1em; }
+.kk .kk-obracun-red.kk-obracun-ukupno-dodatni {
+	margin-top: 0;
+	padding-top: 2px;
+	border-top: 0;
+	font-style: italic;
+	font-weight: 400;
+}
+.kk .kk-obracun-zaglavlje {
+	padding-bottom: 4px;
+	border-bottom: 1px solid var(--kk-crta);
+	margin-bottom: 4px;
+	font-size: .78em !important;
+	font-weight: 700;
+	letter-spacing: .04em;
+	text-transform: uppercase;
+	color: var(--kk-boja);
+}
+.kk .kk-obracun-ukupno.kk-obracun-ukupno-dodatni { margin-top: 0; padding-top: 2px; border-top: 0; }
+.kk .kk-obracun-strucno {
+	margin-top: 12px;
+	padding: 10px 14px;
+	border-left: 3px solid var(--kk-boja);
+	background: color-mix(in srgb, var(--kk-boja) 6%, var(--kk-papir));
+	font-size: .88em;
+}
+.kk .kk-obracun-strucno p + p { margin-top: 4px !important; }
+.kk .kk-obracun-strucno-naslov { font-weight: 700; color: var(--kk-boja); }
+
+/* Dokumenti, grupiranje i povlačenje */
+.kk ul.kk-popis > li.kk-dok { list-style: none !important; margin: 0 !important; padding: 0 !important; }
+.kk ul.kk-popis > li.kk-dok::before { content: none !important; }
+.kk ul.kk-dok-datoteke { list-style: none !important; margin: 0 !important; padding: 0 !important; min-height: 6px; }
+.kk li.kk-stavka {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px 12px;
+}
+.kk li.kk-stavka .kk-info { flex: 1 1 160px; }
+.kk li.kk-stavka .kk-rez { min-width: 5.5em; }
+.kk li.kk-dok--vise {
+	margin: 10px 0 !important;
+	border: 1px solid var(--kk-crta);
+	border-radius: var(--kk-radijus);
+	background: var(--kk-papir);
+}
+.kk .kk-dok-zaglavlje {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px 12px;
+	padding: 10px 12px;
+	border-bottom: 1px solid var(--kk-crta);
+	background: var(--kk-podloga);
+	border-radius: var(--kk-radijus) var(--kk-radijus) 0 0;
+}
+.kk .kk-dok-zaglavlje .kk-info { flex: 1 1 160px; }
+.kk li.kk-dok--vise li.kk-stavka { padding-left: 20px !important; padding-right: 8px !important; }
+.kk li.kk-dok--vise li.kk-stavka:last-child { border-bottom: 0; }
+.kk .kk-rucka {
+	flex: none;
+	padding: 6px 2px;
+	color: var(--kk-blago);
+	font-size: 15px;
+	letter-spacing: -3px;
+	line-height: 1;
+	cursor: grab;
+	user-select: none;
+	-webkit-user-select: none;
+	touch-action: none;
+}
+.kk .kk-slicica {
+	flex: none;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 40px;
+	height: 50px;
+	overflow: hidden;
+	border: 1.5px solid var(--kk-boja);
+	border-radius: 3px;
+	background: var(--kk-papir);
+	color: var(--kk-boja);
+	font-size: .62em;
+	font-weight: 700;
+	letter-spacing: .02em;
+}
+.kk .kk-slicica--slika { border: 1px solid var(--kk-crta); }
+.kk .kk-slicica img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.kk [data-stanje="greska"] .kk-slicica { border-color: var(--kk-greska); color: var(--kk-greska); }
+.kk button.kk-mali-gumb {
+	flex: none;
+	margin: 0;
+	padding: 4px 9px;
+	border: 1px solid var(--kk-crta);
+	border-radius: 4px;
+	background: transparent;
+	color: var(--kk-blago);
+	font: inherit;
+	font-size: .8em;
+	line-height: 1.3;
+	white-space: nowrap;
+	cursor: pointer;
+}
+.kk button.kk-mali-gumb:hover { border-color: var(--kk-boja); color: var(--kk-boja); }
+.kk button.kk-mali-gumb:focus-visible { outline: 2px solid var(--kk-boja); outline-offset: 2px; }
+.kk .kk-povlacenje-duh { opacity: .35; }
+.kk .kk-povlacenje-kopija { opacity: .9 !important; background: var(--kk-papir); box-shadow: 0 6px 18px rgba(0, 0, 0, .15); }
+.kk .kk-povlacenje-odabrano { background: var(--kk-podloga); }
+.kk li.kk-dok--cilj { position: relative; outline: 2px dashed var(--kk-boja); outline-offset: 2px; border-radius: var(--kk-radijus); }
+.kk li.kk-dok--cilj::after {
+	content: "Spoji u jedan dokument";
+	position: absolute;
+	top: -11px;
+	right: 10px;
+	padding: 2px 8px;
+	border-radius: 3px;
+	background: var(--kk-boja);
+	color: var(--kk-papir);
+	font-size: .75em;
+	font-weight: 600;
+	pointer-events: none;
+}
+.kk .kk-grupiranje {
+	margin-top: 16px;
+	padding: 14px 16px;
+	border: 1px solid var(--kk-crta);
+	border-left: 3px solid var(--kk-boja);
+	background: color-mix(in srgb, var(--kk-boja) 6%, var(--kk-papir));
+}
+.kk .kk-grupiranje + .kk-popis { margin-top: 10px !important; }
+/* Zajednički okvir: pitanje o grupiranju, popis datoteka i potvrda */
+.kk .kk-grupiranje-okvir--aktivno {
+	margin-top: 16px;
+	padding: 14px 16px;
+	border: 1px solid var(--kk-crta);
+	border-left: 3px solid var(--kk-boja);
+	background: color-mix(in srgb, var(--kk-boja) 6%, var(--kk-papir));
+}
+.kk .kk-grupiranje-okvir--aktivno .kk-grupiranje { margin: 0; padding: 0; border: 0; background: transparent; }
+.kk .kk-grupiranje-okvir--aktivno ul.kk-popis {
+	margin-top: 12px !important;
+	padding: 0 12px !important;
+	border: 1px solid var(--kk-crta);
+	border-radius: var(--kk-radijus);
+	background: var(--kk-papir);
+}
+.kk .kk-grupiranje-okvir--aktivno li.kk-dok:last-child li.kk-stavka:last-child,
+.kk .kk-grupiranje-okvir--aktivno ul.kk-popis > li.kk-dok:last-child > ul > li.kk-stavka:last-child { border-bottom: 0; }
+.kk .kk-grupiranje-okvir--greska { border-color: var(--kk-greska); border-left-color: var(--kk-greska); }
+.kk .kk-grupiranje-okvir--greska .kk-grupiranje-naslov { color: var(--kk-greska); }
+.kk .kk-grupiranje-potvrda { margin-top: 12px; }
+.kk .kk-grupiranje-potvrda--greska .kk-gumb-potvrda { border-color: var(--kk-greska); color: var(--kk-greska); }
+.kk .kk-grupiranje--greska { border-color: var(--kk-greska); border-left-color: var(--kk-greska); }
+.kk .kk-grupiranje--greska .kk-grupiranje-naslov { color: var(--kk-greska); }
+.kk .kk-grupiranje-naslov { font-weight: 700; color: var(--kk-tekst); }
+.kk .kk-grupiranje-opis { margin-top: 2px !important; font-size: .9em; color: var(--kk-blago); }
+.kk .kk-grupiranje-gumbi { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.kk button.kk-gumb-sporedni {
+	margin: 0;
+	padding: 8px 12px;
+	border: 1px solid var(--kk-crta);
+	border-radius: 4px;
+	background: var(--kk-papir);
+	color: var(--kk-tekst);
+	font: inherit;
+	font-size: .88em;
+	line-height: 1.25;
+	cursor: pointer;
+}
+.kk button.kk-gumb-sporedni:hover { border-color: var(--kk-boja); }
+.kk button.kk-gumb-potvrda { border-color: var(--kk-boja); color: var(--kk-boja); font-weight: 700; }
+.kk button.kk-gumb-sporedni:focus-visible { outline: 2px solid var(--kk-boja); outline-offset: 2px; }
+
+/* Okvirne cijene istom veličinom slova kao stavke obračuna */
+
+/* 5. Zatraži ponudu */
+.kk .kk-ponuda {
+	flex-basis: 100%;
+	margin-top: 18px;
+	padding-top: 16px;
+	border-top: 1px solid var(--kk-crta);
+}
+.kk .kk-ponuda-polja { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 16px; }
+.kk .kk-ponuda-polje { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.kk .kk-ponuda-polje--puno { grid-column: 1 / -1; }
+.kk .kk-ponuda-polje label { margin: 0; font-size: .88em; font-weight: 600; color: var(--kk-tekst); }
+.kk .kk-ponuda-polje input,
+.kk .kk-ponuda-polje textarea {
+	width: 100%;
+	margin: 0;
+	padding: 9px 11px !important;
+	border: 1px solid var(--kk-crta) !important;
+	border-radius: 4px;
+	background: var(--kk-papir) !important;
+	color: var(--kk-tekst) !important;
+	font: inherit;
+	font-size: .95em;
+	line-height: 1.4;
+	box-shadow: none;
+}
+.kk .kk-ponuda-polje textarea { resize: vertical; min-height: 4.5em; }
+.kk .kk-ponuda-polje input:focus,
+.kk .kk-ponuda-polje textarea:focus { outline: 2px solid var(--kk-boja); outline-offset: 1px; border-color: var(--kk-boja) !important; }
+.kk .kk-ponuda-polje--greska input,
+.kk .kk-ponuda-polje--greska textarea { border-color: var(--kk-greska) !important; }
+.kk .kk-ponuda-greska { font-size: .85em; font-weight: 600; color: var(--kk-greska); }
+.kk .kk-ponuda-zamka { position: absolute !important; left: -9999px !important; width: 1px; height: 1px; opacity: 0; }
+.kk label.kk-ponuda-privola {
+	display: flex;
+	align-items: flex-start;
+	gap: 9px;
+	margin: 14px 0 0;
+	font-size: .88em;
+	font-weight: 400;
+	color: var(--kk-tekst);
+	cursor: pointer;
+}
+.kk label.kk-ponuda-privola input { flex: none; width: 17px; height: 17px; margin: 2px 0 0; accent-color: var(--kk-boja); }
+.kk .kk-ponuda-napomena { margin-top: 14px !important; font-size: .88em; color: var(--kk-blago); }
+.kk button.kk-ponuda-gumb {
+	margin: 10px 0 0;
+	padding: 11px 22px;
+	border: 2px solid var(--kk-boja);
+	border-radius: 4px;
+	background: var(--kk-boja);
+	color: var(--kk-papir);
+	font: inherit;
+	font-weight: 700;
+	line-height: 1.2;
+	cursor: pointer;
+}
+.kk button.kk-ponuda-gumb:hover:not(:disabled) { background: color-mix(in srgb, var(--kk-boja) 85%, #000); }
+.kk button.kk-ponuda-gumb:disabled { opacity: .6; cursor: progress; }
+.kk button.kk-ponuda-gumb:focus-visible { outline: 3px solid var(--kk-boja); outline-offset: 3px; }
+.kk .kk-ponuda-status { margin-top: 10px !important; font-size: .9em; color: var(--kk-blago); }
+.kk .kk-ponuda-status--greska { color: var(--kk-greska); font-weight: 600; }
+.kk .kk-ponuda-uspjeh {
+	padding: 14px 16px;
+	border-left: 3px solid var(--kk-boja);
+	background: color-mix(in srgb, var(--kk-boja) 6%, var(--kk-papir));
+	outline: none;
+}
+.kk .kk-ponuda-uspjeh-naslov { font-weight: 700; color: var(--kk-boja); }
+.kk .kk-ponuda-uspjeh p + p { margin-top: 4px !important; }
+.kk .kk-ponuda-pregled {
+	margin: 10px 0;
+	padding: 10px 12px;
+	max-height: 320px;
+	overflow: auto;
+	border: 1px solid var(--kk-crta);
+	background: var(--kk-papir);
+	font-size: .78em;
+	line-height: 1.45;
+	white-space: pre-wrap;
+}
+
+.kk .kk-ponuda-turnstile { margin-top: 10px; }
+.kk .kk-ponuda-turnstile:empty { display: none; }
+
+/* Privatna stranica prevoditelja */
+.kk .kk-prevoditelj-traka {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px 16px;
+	margin-top: 12px;
+	padding: 10px 14px;
+	border: 1px solid var(--kk-crta);
+	border-radius: var(--kk-radijus);
+	background: var(--kk-papir);
+	font-size: .88em;
+}
+.kk .kk-prevoditelj-opis { flex-basis: 100%; color: var(--kk-blago); }
+.kk .kk-prevoditelj-nacini { display: flex; flex-wrap: wrap; gap: 6px 18px; }
+.kk label.kk-prevoditelj-nacin { display: flex; align-items: center; gap: 6px; margin: 0; font-weight: 600; color: var(--kk-tekst); cursor: pointer; }
+.kk label.kk-prevoditelj-nacin input { margin: 0; accent-color: var(--kk-boja); }
+.kk label.kk-prevoditelj-nacin small { font-weight: 400; color: var(--kk-blago); }
+.kk label.kk-prevoditelj-nacin:has(input:disabled) { opacity: .5; cursor: default; }
+.kk .kk-prevoditelj-jezik { display: flex; align-items: center; gap: 6px; margin: 0; color: var(--kk-blago); font-weight: 400; }
+.kk .kk-prevoditelj-jezik select { font: inherit; padding: 3px 6px; }
+.kk button.kk-pretvori { display: inline-flex; align-items: center; gap: 5px; border-color: var(--kk-boja); color: var(--kk-boja); font-weight: 600; }
+.kk button.kk-pretvori svg { width: 14px; height: 14px; }
+.kk button.kk-pretvori:disabled { opacity: .5; cursor: progress; }
+.kk .kk-pretvorba-status { font-size: .82em; color: var(--kk-boja); }
+.kk .kk-pretvorba-status:empty { display: none; }
+.kk .kk-pretvorba-status--greska { color: var(--kk-greska); }
+
+/* Mobitel */
+@media (max-width: 560px) {
+	.kk .kk-ponuda-polja { grid-template-columns: minmax(0, 1fr); }
+	.kk li.kk-stavka {
+		grid-template-columns: auto minmax(0, 1fr) auto auto;
+		grid-template-areas:
+			"vrsta info  info ukloni"
+			".     polje rez  rez"
+			".     word  word word";
+	}
+	.kk.kk--javni li.kk-stavka {
+		grid-template-columns: auto minmax(0, 1fr) auto auto;
+		grid-template-areas: "vrsta info rez ukloni";
+	}
+	.kk button.kk-word { justify-self: start;
+	}
+	.kk .kk-rez { text-align: right; }
+	.kk .kk-ukupno { flex-wrap: wrap; padding: 18px; }
+	.kk .kk-kartice-broj { font-size: 1.37em; }
+	.kk button.kk-pokreni { flex: 1 1 auto; }
+}
+
+/* Isticanje rezultata nakon izračuna */
+@keyframes kk-bljesak {
+	0% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--kk-boja) 30%, transparent); }
+	100% { box-shadow: 0 0 0 0 transparent; }
+}
+.kk .kk-ukupno--osvjezeno { animation: kk-bljesak 1.2s ease-out; }
+
+@media (prefers-reduced-motion: reduce) {
+	.kk .kk-ukupno--osvjezeno { animation: none; }
+	.kk *, .kk *::before, .kk *::after { transition: none !important; }
+}
+

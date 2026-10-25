@@ -1,36 +1,38 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# njemacki-prijevodi.com
 
-## Getting Started
+Web stranica Mario Šercer – stalni sudski tumač i prevoditelj za njemački jezik.
+Next.js (App Router), hosting na Vercelu; forme i datoteke preko Supabasea (korak 2).
 
-First, run the development server:
+## Lokalno pokretanje
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.example .env.local   # upišite lozinku i tajni ključ
+npm run dev                  # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Struktura
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Putanja | Sadržaj |
+|---|---|
+| `content/pages.json` | Tekstovi stranica i članaka (preneseno iz WordPressa) |
+| `content/reviews.json` | Google recenzije prikazane na početnoj |
+| `lib/site.ts` | Kontakt podaci, izbornik |
+| `app/page.tsx` | Početna stranica |
+| `app/[slug]/page.tsx` | Sve obične stranice i članci |
+| `app/kontakt/`, `app/zanimljivosti/`, `app/vizitka/` | Posebne stranice |
+| `app/izracun-cijene/` | Privatni kalkulator (zaštićen lozinkom) |
+| `components/Kalkulator.tsx` | Omotač za `public/kalkulator/kalkulator.js` (isti kod kao WordPress plugin) |
+| `public/uploads/` | Slike i datoteke (stare adrese `/storage/...` se preusmjeravaju ovamo) |
+| `next.config.ts` | Preusmjeravanja sa starih WordPress adresa |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Varijable okruženja (Vercel → Settings → Environment Variables)
 
-## Learn More
+- `PREVODITELJ_LOZINKA` – lozinka za /izracun-cijene/
+- `SESSION_SECRET` – nasumični niz za potpis kolačića prijave
 
-To learn more about Next.js, take a look at the following resources:
+## Još nije spojeno (korak 2)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Kontakt obrazac (`app/api/kontakt`) → Supabase tablica + Storage + e-mail obavijest
+- Upit za ponudu iz kalkulatora (javni kalkulator je trenutno u testnom načinu i ništa ne šalje)
+- Adobe pretvaranje u Word na privatnoj stranici (do tada radi pojednostavljeno pretvaranje u pregledniku)
