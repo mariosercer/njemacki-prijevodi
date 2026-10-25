@@ -2,15 +2,19 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { prenesiDatoteke } from "@/lib/prijenos";
 import { SITE } from "@/lib/site";
+import Turnstile, { TURNSTILE_SITE_KEY } from "./Turnstile";
 
 const DOZVOLJENO = ".pdf,.doc,.docx,.txt,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.zip,.rar";
 const MAX_MB = 24;
 
-type Stanje = { vrsta: "mir" } | { vrsta: "salje" } | { vrsta: "uspjeh" } | { vrsta: "greska"; poruka: string };
+type Stanje = { vrsta: "mir" } | { vrsta: "salje"; postotak?: number } | { vrsta: "uspjeh" } | { vrsta: "greska"; poruka: string };
 
 export default function ContactForm() {
   const [stanje, setStanje] = useState<Stanje>({ vrsta: "mir" });
+  const [tsToken, setTsToken] = useState("");
+  const [tsReset, setTsReset] = useState(0);
 
   async function posalji(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -22,9 +26,24 @@ export default function ContactForm() {
       setStanje({ vrsta: "greska", poruka: `Datoteke su ukupno veće od ${MAX_MB} MB. Pošaljite ih e-mailom na ${SITE.email}.` });
       return;
     }
+    if (TURNSTILE_SITE_KEY && !tsToken) {
+      setStanje({ vrsta: "greska", poruka: "Pričekajte trenutak dok se dovrši provjera da niste robot, pa pokušajte ponovno." });
+      return;
+    }
     setStanje({ vrsta: "salje" });
     try {
-      const res = await fetch("/api/kontakt", { method: "POST", body: fd });
+      const prijenos = await prenesiDatoteke("kontakt", datoteke, {
+        turnstile: tsToken,
+        web: String(fd.get("web") ?? ""),
+        napredak: (postotak) => setStanje({ vrsta: "salje", postotak }),
+      });
+      if (!prijenos.ok) {
+        setStanje({ vrsta: "greska", poruka: prijenos.poruka });
+        return;
+      }
+      fd.delete("datoteke");
+      fd.set("oznaka", prijenos.oznaka);
+      const res = await fetch("/api/kontakt/", { method: "POST", body: fd });
       const odg = await res.json().catch(() => null);
       if (res.ok && odg?.ok) {
         form.reset();
@@ -34,6 +53,9 @@ export default function ContactForm() {
       }
     } catch {
       setStanje({ vrsta: "greska", poruka: "Veza s poslužiteljem nije uspjela. Pokušajte ponovno." });
+    } finally {
+      setTsToken("");
+      setTsReset((n) => n + 1);
     }
   }
 
@@ -72,13 +94,14 @@ export default function ContactForm() {
           <Link href="/izjava-o-privatnosti/">izjava o privatnosti</Link>).
         </span>
       </label>
+      <Turnstile onToken={setTsToken} resetKey={tsReset} />
       {stanje.vrsta === "greska" && (
         <div className="form-notice error" role="alert">
           {stanje.poruka}
         </div>
       )}
       <button className="btn" type="submit" disabled={stanje.vrsta === "salje"}>
-        {stanje.vrsta === "salje" ? "Šaljem…" : "Pošalji"}
+        {stanje.vrsta === "salje" ? `Šaljem…${stanje.postotak ? ` ${stanje.postotak} %` : ""}` : "Pošalji"}
       </button>
     </form>
   );

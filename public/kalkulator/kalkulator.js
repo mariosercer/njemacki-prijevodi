@@ -2767,47 +2767,81 @@
 			return;
 		}
 
-		var fd = new FormData();
-		fd.append('token', cfg.token);
-		if (cfg.turnstile) fd.append('cf-turnstile-response', this._tsToken);
-		fd.append('ime', ime);
-		fd.append('email', email);
-		fd.append('napomena', napomena);
-		fd.append('privola', '1');
-		fd.append('web', p.zamka.value);
-		fd.append('podaci', JSON.stringify(sazetak));
-		this.stavke.forEach(function (s) { if (s.datoteka) fd.append('datoteke[]', s.datoteka, s.ime); });
+		var datoteke = this.stavke.filter(function (s) { return s.datoteka; }).map(function (s) {
+			return new File([s.datoteka], s.ime, { type: s.datoteka.type });
+		});
 
 		this._saljem = true;
 		p.gumb.disabled = true;
 		p.gumb.textContent = 'Šaljem…';
-		var xhr = new XMLHttpRequest();
-		xhr.open('POST', cfg.url);
-		xhr.upload.onprogress = function (e) {
-			if (e.lengthComputable) p.gumb.textContent = 'Šaljem… ' + Math.round(e.loaded / e.total * 100) + ' %';
-		};
-		xhr.onload = function () {
-			var odg = null;
-			try { odg = JSON.parse(xhr.responseText); } catch (e) { /* nije JSON */ }
-			kraj();
-			if (xhr.status >= 200 && xhr.status < 300 && odg && odg.ok) uspjelo();
-			else self.statusPonude((odg && odg.poruka) || 'Upit se nije mogao poslati. Pokušajte ponovno ili nam pošaljite dokumente izravno e-mailom' +
-				(cfg.email ? ' na ' + cfg.email : '') + '.', true);
-		};
-		xhr.onerror = function () {
-			kraj();
-			self.statusPonude('Veza s poslužiteljem nije uspjela. Provjerite internetsku vezu i pokušajte ponovno.', true);
-		};
 		function kraj() {
 			self.resetirajTurnstile();
 			self._saljem = false;
 			p.gumb.disabled = false;
 			p.gumb.textContent = '5. Zatraži ponudu';
 		}
+		function neuspjeh(poruka) {
+			kraj();
+			self.statusPonude(poruka || 'Upit se nije mogao poslati. Pokušajte ponovno ili nam pošaljite dokumente izravno e-mailom' +
+				(cfg.email ? ' na ' + cfg.email : '') + '.', true);
+		}
+
+		// Next.js/Vercel: datoteke se prvo prenose izravno u Supabase Storage (/api/prijenos),
+		// a zatim se šalje sam upit s oznakom prijenosa (Vercel ne prima zahtjeve veće od 4,5 MB).
 		// Poslužitelj odbija upite poslane prebrzo nakon otvaranja stranice (zaštita od robota);
 		// ako je naručitelj bio vrlo brz, slanje se samo malo odgodi.
 		var pricekaj = Math.max(0, 9000 - (Date.now() - this._otvoreno));
-		setTimeout(function () { xhr.send(fd); }, pricekaj);
+		setTimeout(async function () {
+			try {
+				var r = await fetch('/api/prijenos/', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						izvor: 'ponuda',
+						turnstile: cfg.turnstile ? self._tsToken : '',
+						web: p.zamka.value,
+						datoteke: datoteke.map(function (d) { return { ime: d.name, velicina: d.size }; })
+					})
+				});
+				var o = await r.json().catch(function () { return null; });
+				if (!r.ok || !o || !o.ok) return neuspjeh(o && o.poruka);
+
+				var ukupno = datoteke.reduce(function (a, d) { return a + d.size; }, 0) || 1, gotovo = 0;
+				for (var i = 0; i < datoteke.length; i++) {
+					var ok = await new Promise(function (resolve) {
+						var d = datoteke[i], fdd = new FormData();
+						fdd.append('cacheControl', '3600');
+						fdd.append('', d);
+						var xhr = new XMLHttpRequest();
+						xhr.open('PUT', o.prijenosi[i].url);
+						xhr.setRequestHeader('x-upsert', 'false');
+						xhr.upload.onprogress = function (e) {
+							if (e.lengthComputable) p.gumb.textContent = 'Šaljem… ' + Math.round((gotovo + e.loaded) / ukupno * 100) + ' %';
+						};
+						xhr.onload = function () { gotovo += d.size; resolve(xhr.status >= 200 && xhr.status < 300); };
+						xhr.onerror = function () { resolve(false); };
+						xhr.send(fdd);
+					});
+					if (!ok) return neuspjeh('Datoteka „' + datoteke[i].name + '” nije poslana. Provjerite internetsku vezu i pokušajte ponovno.');
+				}
+
+				var fd = new FormData();
+				fd.append('oznaka', o.oznaka);
+				fd.append('ime', ime);
+				fd.append('email', email);
+				fd.append('napomena', napomena);
+				fd.append('privola', '1');
+				fd.append('web', p.zamka.value);
+				fd.append('podaci', JSON.stringify(sazetak));
+				var r2 = await fetch(cfg.url, { method: 'POST', body: fd });
+				var o2 = await r2.json().catch(function () { return null; });
+				if (!r2.ok || !o2 || !o2.ok) return neuspjeh(o2 && o2.poruka);
+				kraj();
+				uspjelo();
+			} catch (e) {
+				neuspjeh('Veza s poslužiteljem nije uspjela. Provjerite internetsku vezu i pokušajte ponovno.');
+			}
+		}, pricekaj);
 	};
 
 	// Tekstni oblik upita (za pregled u testnoj verziji; plugin na poslužitelju slaže isti sadržaj).

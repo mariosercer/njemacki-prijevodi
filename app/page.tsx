@@ -49,7 +49,12 @@ export default function Home() {
             pouzdano i povoljno. Uz širok spektar područja koje pokrivamo specijalizirani smo u prevođenju na području
             tehničkih znanosti, ekonomije i prava. Obratite nam se s povjerenjem!
           </p>
-          <Kalkulator prikaz="javni" ponudaUrl="" ponudaToken="" />
+          <Kalkulator
+            prikaz="javni"
+            ponudaUrl="/api/ponuda/"
+            ponudaToken="-"
+            turnstileSiteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+          />
         </div>
       </section>
 

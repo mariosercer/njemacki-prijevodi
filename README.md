@@ -26,13 +26,18 @@ npm run dev                  # http://localhost:3000
 | `public/uploads/` | Slike i datoteke (stare adrese `/storage/...` se preusmjeravaju ovamo) |
 | `next.config.ts` | Preusmjeravanja sa starih WordPress adresa |
 
+## Upiti (kontakt obrazac i upit za ponudu)
+
+1. Preglednik pošalje popis datoteka na `/api/prijenos` → provjera (zamka za robote, Turnstile, najviše 10 upita na sat po IP-u, vrste i veličina datoteka) i potpisane adrese za prijenos.
+2. Datoteke idu izravno u Supabase Storage (spremnik `privitci`), jer Vercel ne prima zahtjeve veće od 4,5 MB.
+3. `/api/kontakt` ili `/api/ponuda` sprema upit u tablicu `upiti` i šalje obavijest (Resend) s poveznicama na datoteke (vrijede 30 dana).
+
+Shema baze: `supabase/schema.sql` (zalijepiti u Supabase → SQL Editor).
+
 ## Varijable okruženja (Vercel → Settings → Environment Variables)
 
-- `PREVODITELJ_LOZINKA` – lozinka za /izracun-cijene/
-- `SESSION_SECRET` – nasumični niz za potpis kolačića prijave
+Popis i opis: `.env.example`.
 
-## Još nije spojeno (korak 2)
+## Još nije spojeno
 
-- Kontakt obrazac (`app/api/kontakt`) → Supabase tablica + Storage + e-mail obavijest
-- Upit za ponudu iz kalkulatora (javni kalkulator je trenutno u testnom načinu i ništa ne šalje)
 - Adobe pretvaranje u Word na privatnoj stranici (do tada radi pojednostavljeno pretvaranje u pregledniku)
