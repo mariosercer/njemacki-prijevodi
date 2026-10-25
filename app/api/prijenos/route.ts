@@ -25,7 +25,11 @@ type Zahtjev = {
 
 export async function POST(req: Request) {
   const db = supabase();
-  if (!db || !process.env.SESSION_SECRET) return greska(PORUKA_NEDOSTUPNO, 503);
+  if (!db || !process.env.SESSION_SECRET) {
+    // PRIVREMENO za dijagnostiku – samo nazivi varijabli koje nedostaju, bez vrijednosti
+    const nedostaje = ["SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "SESSION_SECRET"].filter((k) => !process.env[k]);
+    return NextResponse.json({ ok: false, poruka: PORUKA_NEDOSTUPNO, nedostaje }, { status: 503 });
+  }
 
   const z = (await req.json().catch(() => null)) as Zahtjev | null;
   if (!z || (z.izvor !== "kontakt" && z.izvor !== "ponuda")) return greska("Neispravan zahtjev.");
