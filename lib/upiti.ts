@@ -80,7 +80,8 @@ export async function previseUpita(hash: string): Promise<boolean> {
   const db = supabase();
   if (!db) return false;
   const od = new Date(Date.now() - 60 * 60 * 1000).toISOString();
-  const { count } = await db.from("upiti").select("id", { count: "exact", head: true }).eq("ip_hash", hash).gte("created_at", od);
+  const { count, error } = await db.from("upiti").select("id", { count: "exact", head: true }).eq("ip_hash", hash).gte("created_at", od);
+  if (error) console.error("Supabase: provjera broja upita nije uspjela", error);
   return (count ?? 0) >= UPITA_PO_SATU;
 }
 

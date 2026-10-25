@@ -53,7 +53,10 @@ export async function POST(req: Request) {
   const prijenosi: { url: string }[] = [];
   for (const ime of imena) {
     const { data, error } = await db.storage.from(SPREMNIK).createSignedUploadUrl(`${id}/${ime}`);
-    if (error || !data) return greska(PORUKA_NEDOSTUPNO, 503);
+    if (error || !data) {
+      console.error("Supabase: izrada adrese za prijenos nije uspjela", error);
+      return greska(PORUKA_NEDOSTUPNO, 503);
+    }
     prijenosi.push({ url: data.signedUrl });
   }
   return NextResponse.json({ ok: true, oznaka, prijenosi });
