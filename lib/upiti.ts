@@ -5,7 +5,7 @@ import { SITE } from "@/lib/site";
 import { SPREMNIK, supabase } from "@/lib/supabase";
 import { tajniKljuc } from "@/lib/tajna";
 
-export type Izvor = "kontakt" | "ponuda";
+export type Izvor = "kontakt" | "ponuda" | "pretvorba";
 
 export const MAX_DATOTEKA = 20;
 export const MAX_UKUPNO = 24 * 1024 * 1024;

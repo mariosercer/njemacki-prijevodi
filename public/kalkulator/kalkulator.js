@@ -2385,27 +2385,43 @@
 				return;
 			}
 			if (c.adobe && !c.iscrpljeno && !(c.limit && c.broj >= c.limit) && c.url) {
-				var fd = new FormData();
-				g.stavke.forEach(function (s) { if (s.datoteka) fd.append('datoteke[]', s.datoteka, s.ime); });
 				// Dodatni OCR korak treba skenovima i fotografijama; digitalni PDF-ovi (s tekstom) idu bez njega.
 				var trebaOcr = g.stavke.some(function (s) {
 					return s.vrsta !== 'pdf' || s.stanje !== 'gotovo' || /OCR|skenirano/i.test(s.napomena || '');
 				});
-				fd.append('ocr', trebaOcr ? '1' : '0');
-				fd.append('jezik', this.$.traka ? this.$.traka.jezik.value : c.jezik);
-				fd.append('ime', ime);
 				var zaglavlja = {};
-				var r = await (await fetch(c.url, { method: 'POST', body: fd, headers: zaglavlja, credentials: 'same-origin' })).json();
+				// Next.js/Vercel: dokumenti se prvo prenose izravno u Supabase Storage (Vercel ne prima zahtjeve veće od 4,5 MB),
+				// a zatim poslužitelj s oznakom prijenosa pokreće Adobe.
+				var baza = c.url.replace(/\/$/, '');
+				var datoteke = g.stavke.filter(function (s) { return s.datoteka; });
+				st.opis = 'Šaljem dokument…';
+				this.osvjeziPretvorbu(g);
+				var pr = await (await fetch(baza + '/prijenos/', {
+					method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ datoteke: datoteke.map(function (s) { return { ime: s.ime }; }) })
+				})).json();
+				if (!pr || !pr.ok) throw new Error((pr && pr.poruka) || 'dokument se nije mogao poslati');
+				for (var j = 0; j < datoteke.length; j++) {
+					var tijelo = new FormData();
+					tijelo.append('cacheControl', '3600');
+					tijelo.append('', datoteke[j].datoteka);
+					var put = await fetch(pr.prijenosi[j].url, { method: 'PUT', body: tijelo, headers: { 'x-upsert': 'false' } });
+					if (!put.ok) throw new Error('dokument „' + datoteke[j].ime + '” se nije mogao poslati');
+				}
+				var r = await (await fetch(baza + '/', {
+					method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ oznaka: pr.oznaka, ocr: trebaOcr, jezik: this.$.traka ? this.$.traka.jezik.value : c.jezik, ime: ime })
+				})).json();
 				if (r && r.posao) {
 					st.opis = r.opis || 'Učitavam dokument na Adobe…';
 					st.napredak = r.napredak || 0.05;
 					this.osvjeziPretvorbu(g);
 					for (var i = 0; i < 300; i++) {
 						await pricekaj(2500);
-						var o = await (await fetch(c.url + '/' + r.posao, { headers: zaglavlja, credentials: 'same-origin' })).json();
+						var o = await (await fetch(baza + '/' + r.posao + '/', { headers: zaglavlja, credentials: 'same-origin' })).json();
 						if (o && o.adobe) { c.broj = o.adobe.broj; c.limit = o.adobe.limit; this.osvjeziTrakuPrevoditelja(); }
 						if (o && o.stanje === 'gotovo' && o.word) {
-							var odg = await fetch(o.word, { headers: zaglavlja, credentials: 'same-origin' });
+							var odg = await fetch(o.word);
 							if (!odg.ok) throw new Error('Word datoteka se nije mogla preuzeti s poslužitelja.');
 							spremi(await odg.blob(), ime + '.docx');
 							st.stanje = 'gotovo';

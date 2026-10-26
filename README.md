@@ -38,6 +38,11 @@ Shema baze: `supabase/schema.sql` (zalijepiti u Supabase → SQL Editor).
 
 Popis i opis: `.env.example`.
 
-## Još nije spojeno
+## Adobe pretvaranje u Word (/izracun-cijene/)
 
-- Adobe pretvaranje u Word na privatnoj stranici (do tada radi pojednostavljeno pretvaranje u pregledniku)
+1. Preglednik prenese dokumente u Supabase (`/api/pretvori/prijenos`, samo za prijavljenog prevoditelja).
+2. `/api/pretvori` ih predaje Adobe PDF Services i pokreće prvi korak (PDF → spajanje → OCR → Word).
+3. Kalkulator svakih 2,5 s pita `/api/pretvori/<id>`; svaki upit provjeri Adobe i pokrene sljedeći korak.
+4. Gotov Word se sprema u Supabase i preuzima odande. Ako Adobe zakaže, kalkulator izradi pojednostavljeni Word u pregledniku.
+
+Shema: `supabase/pretvorbe.sql`. Varijable: `ADOBE_CLIENT_ID`, `ADOBE_CLIENT_SECRET` (vidi `.env.example`).

@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import Kalkulator from "@/components/Kalkulator";
 import PageShell from "@/components/PageShell";
+import { adobePostavljen } from "@/lib/adobe";
+import { stanjeKvote } from "@/lib/pretvorbe";
 import { KOLACIC, prijavljen } from "@/lib/prevoditelj";
 
 export const metadata: Metadata = {
@@ -12,6 +14,7 @@ export const metadata: Metadata = {
 export default async function IzracunCijene({ searchParams }: { searchParams: Promise<{ greska?: string }> }) {
   const { greska } = await searchParams;
   const ok = prijavljen((await cookies()).get(KOLACIC)?.value);
+  const adobe = ok && adobePostavljen() ? await stanjeKvote() : undefined;
 
   return (
     <PageShell title="Izračun cijene" sidebar={false}>
@@ -22,7 +25,7 @@ export default async function IzracunCijene({ searchParams }: { searchParams: Pr
               Odjava
             </button>
           </form>
-          <Kalkulator prikaz="prevoditelj" />
+          <Kalkulator prikaz="prevoditelj" pretvaranjeUrl="/api/pretvori/" adobe={adobe} />
         </>
       ) : (
         <form action="/api/prijava/" method="post" className="login-box">
