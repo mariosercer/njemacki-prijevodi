@@ -46,3 +46,8 @@ Popis i opis: `.env.example`.
 4. Gotov Word se sprema u Supabase i preuzima odande. Ako Adobe zakaže, kalkulator izradi pojednostavljeni Word u pregledniku.
 
 Shema: `supabase/pretvorbe.sql`. Varijable: `ADOBE_CLIENT_ID`, `ADOBE_CLIENT_SECRET` (vidi `.env.example`).
+
+## Brisanje starih podataka
+
+Vercel Cron (`vercel.json`) svaki dan u 2:17 UTC poziva `/api/ciscenje/`, koji briše upite, pretvorbe i sve
+dokumente u Supabaseu starije od 90 dana. Zahtijeva varijablu `CRON_SECRET`.
