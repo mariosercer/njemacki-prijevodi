@@ -1,4 +1,4 @@
-/* Izračun okvirne cijene prijevoda 1.7 – Mario Šercer
+/* Izračun okvirne cijene prijevoda 1.8 – Mario Šercer
    Font se nasljeđuje od teme, a istaknuta boja dolazi iz atributa "boja" shortcodea. */
 
 .kk {
@@ -700,6 +700,9 @@
 .kk .kk-pretvorba-status { font-size: .82em; color: var(--kk-boja); }
 .kk .kk-pretvorba-status:empty { display: none; }
 .kk .kk-pretvorba-status--greska { color: var(--kk-greska); }
+
+/* Klijentska verzija: okvir s rezultatom sadrži samo cijenu */
+.kk.kk--javni .kk-obracun { margin-top: 0; padding-top: 0; border-top: 0; }
 
 /* Mobitel */
 @media (max-width: 560px) {

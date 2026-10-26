@@ -54,6 +54,7 @@ export default function Home() {
           </p>
           <Kalkulator
             prikaz="javni"
+            naslov="Izračun okvirne cijene"
             ponudaUrl="/api/ponuda/"
             ponudaToken="-"
             turnstileSiteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}

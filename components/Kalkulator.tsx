@@ -41,6 +41,8 @@ const CJENIK = {
 type Props =
   | {
       prikaz: "javni";
+      /** Naslov unutar polja za povlačenje datoteka, iznad ikone. */
+      naslov?: string;
       /** Prazno = testni način: upit se prikaže, ali se ne šalje. */
       ponudaUrl: string;
       ponudaToken: string;
@@ -84,6 +86,15 @@ export default function Kalkulator(props: Props) {
     });
   }
 
+  // Naslov se umeće kao prvi element polja za povlačenje (.kk-zona), iznad ikone.
+  const html =
+    props.prikaz === "javni" && props.naslov
+      ? KALKULATOR_HTML.replace(
+          /(<div[^>]*class="kk-zona"[^>]*>)/,
+          `$1<h2 class="kk-zona-glavni-naslov">${props.naslov.replace(/</g, "&lt;")}</h2>`,
+        )
+      : KALKULATOR_HTML;
+
   return (
     <>
       <div
@@ -91,7 +102,7 @@ export default function Kalkulator(props: Props) {
         id="kk-1"
         style={{ "--kk-boja": "#24456b" } as React.CSSProperties}
         {...data}
-        dangerouslySetInnerHTML={{ __html: KALKULATOR_HTML }}
+        dangerouslySetInnerHTML={{ __html: html }}
       />
       <Script src="/kalkulator/kalkulator.js" strategy="afterInteractive" onReady={() => window.kkPokreni?.()} />
     </>

@@ -1,4 +1,4 @@
-/* Izračun okvirne cijene prijevoda 1.7 – Mario Šercer */
+/* Izračun okvirne cijene prijevoda 1.8 – Mario Šercer */
 (function () {
 	'use strict';
 
@@ -154,7 +154,7 @@
 	function ocr(slika, ctx, opcije) {
 		aktivniLogger = function (m) {
 			if (m.status !== 'recognizing text') return;
-			ctx.napredak(m.progress);
+			if (ctx.ocrNapredak) ctx.ocrNapredak(m.progress);
 			ctx.status((ctx.porukaOcr || 'Prepoznajem tekst…').replace(/…$/, '') + '… ' + Math.round(m.progress * 100) + ' %');
 		};
 		if (!ocrRadnici[ctx.jezici]) ctx.status('Pripremam prepoznavanje teksta (prvi put može potrajati)…');
@@ -163,6 +163,7 @@
 			return w.recognize(slika, opcije || {});
 		}).then(function (r) {
 			aktivniLogger = null;
+			if (ctx.ocrKraj) ctx.ocrKraj();
 			return r.data;
 		});
 	}
@@ -305,6 +306,7 @@
 		for (var i = 0; i < imena.length; i++) {
 			var ext = /\.([a-z]+)$/i.exec(imena[i])[1].toLowerCase();
 			var blob = new Blob([await zip.file(imena[i]).async('arraybuffer')], { type: SLIKA_MIME[ext] });
+			ctx.jedinica(i, imena.length);
 			var sl = await pripremiSliku(blob);
 			if (!sl || sl.sirina < MIN_SLIKA || sl.visina < MIN_SLIKA) continue;
 			ctx.porukaOcr = 'Prepoznajem tekst na slici ' + (i + 1) + ' od ' + imena.length + '…';
@@ -314,6 +316,7 @@
 			obradjeno++;
 			if (odl.length) dijelovi.push({ vrsta: 'slike', odlomci: odl });
 		}
+		ctx.jedinica(imena.length, imena.length); // sve slike pročitane
 		return { dijelovi: dijelovi, obradjeno: obradjeno };
 	}
 
@@ -406,7 +409,7 @@
 		var brStr = doc.numPages, svi = [], ocrStr = 0, okrenuto = 0, slObr = 0, slTekst = 0, slGreska = '';
 		for (var i = 1; i <= brStr; i++) {
 			ctx.status('Čitam stranicu ' + i + ' od ' + brStr + '…');
-			ctx.napredak((i - 1) / brStr);
+			ctx.jedinica(i - 1, brStr);
 			var str = await doc.getPage(i);
 			var sadrzaj = await str.getTextContent();
 			var odlomci = odlomciIzPdf(sadrzaj.items);
@@ -454,6 +457,7 @@
 			Array.prototype.push.apply(svi, odlomci);
 			str.cleanup();
 		}
+		ctx.jedinica(brStr, brStr); // sve stranice pročitane
 		doc.destroy();
 		var napomena = brStr + ' ' + mnozina(brStr, 'stranica', 'stranice', 'stranica');
 		if (ocrStr === brStr) napomena += ', skenirano (OCR)';
@@ -827,6 +831,7 @@
 		var sl = await pripremiSliku(datoteka);
 		if (!sl) return { odlomci: odlomciIzOcr(await ocrTekst(datoteka, ctx)), napomena: 'Slika (OCR)', stranice: 1 };
 		var rez = await ocrOrijentirano(sl.platno, ctx);
+		ctx.jedinica(1, 1); // slika pročitana
 		sl.platno.width = sl.platno.height = 0;
 		return { odlomci: odlomciIzOcr(rez.text || ''), napomena: 'Slika (OCR)' + (rez.kut ? ', okrenuta slika ispravljena' : ''), stranice: 1 };
 	}
@@ -1510,6 +1515,12 @@
 		};
 		// Tekst na slikama unutar dokumenata prepoznaje se uvijek (kvačica postoji samo ako je dodana u oznake).
 		this.slike = this.$.slike ? this.$.slike.checked : true;
+		// Klijentska verzija: bez ikone i retka s brojem kartica, definicije kartice i podjele; ostaje samo cijena.
+		if (this.javno) {
+			[this.$.list, korijen.querySelector('.kk-ukupno-tekst')].forEach(function (e) {
+				if (e && e.parentNode) e.parentNode.removeChild(e);
+			});
+		}
 		this.izbor = { ovjera: null, dostava: null, sken: false };
 		this.greska = { ovjera: false, dostava: false, grupiranje: false };
 		this.nacrtajNarudzbu();
@@ -2072,7 +2083,7 @@
 				});
 				zag.appendChild(rucka);
 				zag.appendChild(info);
-				zag.appendChild(rez);
+				if (!self.javno) zag.appendChild(rez);
 				if (self.prevoditelj) zag.appendChild(self.gumbPretvorbe(g));
 				zag.appendChild(razdvoji);
 				li.appendChild(zag);
@@ -2204,8 +2215,8 @@
 		li.appendChild(sl);
 		li.appendChild(info);
 		if (!this.javno) li.appendChild(polje);
-		// Varijanta B: unutar spojenog dokumenta naručitelj vidi samo ukupno za dokument.
-		if (!vise || !this.javno) li.appendChild(rez);
+		// Klijent ne vidi kartice: samo broj stranica (u opisu) i, na kraju, cijenu.
+		if (!this.javno) li.appendChild(rez);
 		if (!this.javno) li.appendChild(word);
 		if (this.prevoditelj && !vise) {
 			li.appendChild(this.gumbPretvorbe(g));
@@ -2676,8 +2687,8 @@
 		return {
 			vrsta: vrsta,
 			dostava: dostava,
-			kartice: this.$.broj.textContent + ' ' + (this.k.querySelector('.kk-kartice-oznaka') || {}).textContent,
-			podjela: this.$.podjela && !this.$.podjela.hidden ? this.$.podjela.innerText.replace(/\n+/g, '; ') : '',
+			kartice: this._kartice ? this._kartice.tekst : '',
+			podjela: this._kartice ? this._kartice.podjela : '',
 			strucno: strucnoObav ? strucnoObav.textContent : '',
 			dokumenti: dokumenti,
 			obracun: obracun
@@ -3084,19 +3095,29 @@
 		this.osvjeziStavku(s);
 		this.osvjeziZbroj();
 
+		// Napredak datoteke dijeli se na jedinice (stranice PDF-a, slike u dokumentu). Unutar jedinice može biti više
+		// prepoznavanja teksta (OCR), svako s vlastitim napretkom 0–100 %, pa se oni ne smiju miješati s napretkom
+		// cijele datoteke: k-to prepoznavanje u jedinici dovodi je najviše do 1 − 0,5^k, a jedinica je gotova tek kad
+		// čitač prijeđe na sljedeću. Zato napredak nikad ne dosegne 100 % prije kraja obrade.
+		var u = { i: 0, n: 1, rec: 0, ocr: 0 };
+		function prijavi() {
+			var baza = 1 - Math.pow(0.5, u.rec);
+			var unutar = baza + (1 - baza) * 0.5 * Math.max(0, Math.min(1, u.ocr));
+			var p = Math.max(0, Math.min(0.98, (u.i + unutar) / u.n));
+			s.dom.traka.style.width = Math.round(p * 100) + '%';
+			if (self.napredak && p > (self.napredak.trenutna || 0)) {
+				self.napredak.trenutna = p;
+				self.osvjeziGumbNapretka();
+			}
+		}
 		var ctx = {
 			jezici: this.cfg.jezici,
 			slike: this.slike,
 			status: function (t) { s.dom.status.textContent = t; },
-			napredak: function (p) {
-				p = Math.max(0, Math.min(1, p || 0));
-				s.dom.traka.style.width = Math.round(p * 100) + '%';
-				// Napredak trenutne datoteke ne smije ići unatrag (npr. kad PDF pređe s čitanja na OCR stranice).
-				if (self.napredak && p > (self.napredak.trenutna || 0)) {
-					self.napredak.trenutna = p;
-					self.osvjeziGumbNapretka();
-				}
-			}
+			jedinica: function (i, n) { u = { i: Math.max(0, i), n: Math.max(1, n), rec: 0, ocr: 0 }; prijavi(); },
+			ocrNapredak: function (p) { u.ocr = p; prijavi(); },
+			ocrKraj: function () { u.rec++; u.ocr = 0; prijavi(); },
+			napredak: function () { prijavi(); }
 		};
 		ctx.status('Čitam datoteku…');
 		ctx.napredak(0);
@@ -3132,7 +3153,8 @@
 	Kalkulator.prototype.osvjeziGumbNapretka = function () {
 		var b = this.$.pokreni, n = this.napredak;
 		if (!b || !this.radi || !n) return;
-		var udio = n.ukupno ? Math.min(1, (n.gotovo + Math.min(1, n.trenutna || 0)) / n.ukupno) : 0;
+		// Dok obrada traje, gumb nikad ne pokazuje 100 %.
+		var udio = n.ukupno ? Math.min(0.99, (n.gotovo + Math.min(1, n.trenutna || 0)) / n.ukupno) : 0;
 		var posto = Math.round(udio * 100);
 		b.classList.add('kk-pokreni--radi');
 		b.style.setProperty('--kk-napredak', (udio * 100).toFixed(1) + '%');
@@ -3182,6 +3204,13 @@
 			zaokruzeno += k;
 			if (k && p.strucno) strucneObr += k;
 		});
+		// Podaci o karticama za e-mail prevoditelju (klijentu se ne prikazuju).
+		this._kartice = {
+			tekst: this.prikaziKartice(zaokruzeno) + ' ' + this.oznakaKartica(zaokruzeno),
+			podjela: strucneObr
+				? (strucneObr < zaokruzeno ? 'standardni tekst: ' + karticeTekst(zaokruzeno - strucneObr) + '; ' : '') + 'stručni tekst: ' + karticeTekst(strucneObr)
+				: ''
+		};
 		this.$.broj.textContent = this.prikaziKartice(zaokruzeno);
 		var oznaka = this.k.querySelector('.kk-kartice-oznaka');
 		if (oznaka) oznaka.textContent = this.oznakaKartica(zaokruzeno);

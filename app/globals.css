@@ -603,6 +603,14 @@ b {
   color: var(--heading);
 }
 
+/* Naslov unutar polja za povlačenje datoteka u kalkulatoru */
+.kk .kk-zona-glavni-naslov {
+  margin: 0 0 14px;
+  font-size: 24px;
+  font-weight: 500;
+  color: var(--heading);
+}
+
 /* ---------- Zanimljivosti ---------- */
 
 .post-grid {
